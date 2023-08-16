@@ -5,6 +5,7 @@ use parquet::{
     file::{properties::WriterProperties, writer::SerializedFileWriter},
     schema::parser::parse_message_type,
     file::reader::{FileReader, SerializedFileReader},
+    column::reader::{ColumnReader, get_typed_column_reader},
 };
 
 fn write_file() {
@@ -46,18 +47,34 @@ fn read_file() {
         let reader = SerializedFileReader::new(file).unwrap();
 
         let parquet_metadata = reader.metadata();
-        // println!("parquet_metadata: {:?}", parquet_metadata);
+        println!("parquet_metadata: {:?}", parquet_metadata);
 
         assert_eq!(parquet_metadata.num_row_groups(), 1);
 
         let row_group_reader = reader.get_row_group(0).unwrap();
         println!("num columns: {}", row_group_reader.num_columns());
 
+        let mut values = [0; 5];
+
+        let column_reader = row_group_reader.get_column_reader(0).unwrap();
+
+        let mut column_reader = get_typed_column_reader::<Int32Type>(column_reader);
+        column_reader.read_records(5, None, None, &mut values).unwrap();
+
+
+        println!("values: {:?}", values);
+
+
+
+
+
+
+
 
     }
 }
 
 fn main() {
-    write_file();
+    // write_file();
     read_file();
 }
